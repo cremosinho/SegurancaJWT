@@ -22,6 +22,7 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilter(new JwtTokenFilter())
                 .formLogin(Customizer.withDefaults());
         return http.build();
     }
