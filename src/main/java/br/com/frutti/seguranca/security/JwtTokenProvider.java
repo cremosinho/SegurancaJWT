@@ -4,6 +4,7 @@ import br.com.frutti.seguranca.model.Usuario;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -13,7 +14,7 @@ public class JwtTokenProvider {
     private String secret = "meuSegredo";
     private int expiration = 300000;
 
-    public String generateToken(Authentication authentication, Usuario usuario){
+    public String generateToken(UserDetails usuario){
         return Jwts.builder()
                 .setSubject(usuario.getUsername())
                 .setIssuedAt(new Date())
@@ -22,10 +23,13 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public boolean validateToken(String authToken){
+    public boolean validateToken(String token, UserDetails userDetails){
+        String username = getUsernameFromToken(token);
+        boolean isTokenExpired;
         try{
-            Jwts.parser().setSigningKey(secret).parseClaimsJws(authToken);
-            return true;
+            Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+            isTokenExpired = claims.getExpiration().before(new Date());
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired);
         } catch (SignatureException e) {
             // log para a assinatura inválida do token
         } catch (MalformedJwtException e) {
@@ -46,5 +50,10 @@ public class JwtTokenProvider {
             return bearerToken.substring(7); // Remove o prefixo "Bearer "
         }
         return null; // Retorna null se não houver token no cabeçalho
+    }
+
+    public String getUsernameFromToken(String token){
+        final Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        return claims.getSubject();
     }
 }

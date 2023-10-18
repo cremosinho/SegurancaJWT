@@ -18,6 +18,8 @@ public class Usuario implements UserDetails {
     private String nome;
     private String sobrenome;
     private String email;
+    @ManyToOne
+    @JoinColumn(name="perfil")
     private Perfil perfil;
     private String senha;
     private boolean ativo;
@@ -41,17 +43,17 @@ public class Usuario implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return this.ativo;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return this.ativo;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return this.ativo;
     }
 
     @Override
